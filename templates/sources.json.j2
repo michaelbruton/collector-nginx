@@ -1,0 +1,37 @@
+{
+    "api.version": "v1",
+    "sources": [
+        {
+            "sourceType": "LocalFile",
+            "name": "NGINX Access Log",
+            "hostName": "{{ ec2_tags.tags.ID }}",
+            "pathExpression": "/var/log/nginx/access.log",
+            "category": "Application/NGINX/Access",
+            "timeZone": "Etc/UTC"
+        },
+        {
+            "sourceType": "LocalFile",
+            "name": "NGINX Error Log",
+            "hostName": "{{ ec2_tags.tags.ID }}",
+            "pathExpression": "/var/log/nginx/error.log",
+            "category": "Application/NGINX/Error",
+            "timeZone": "Etc/UTC"
+        },
+        {
+            "sourceType": "Script",
+            "name": "SAR",
+            "hostName": "{{ ec2_tags.tags.ID }}",
+            "commands": [
+                "/bin/bash"
+            ],
+            "workingDir": "/tmp",
+            "file": null,
+            "timeout": 30000,
+            "script": "/usr/bin/sadf -T -p -s $(/usr/bin/date -d \"-4 minute\" +%T) -- 1 1 -A | /usr/bin/awk '{print $4 \" ### \" $5 \" \" $6 \" \" $7}'",
+            "cronExpression":"0 0/1 * 1/1 * ? *",
+            "category": "OS/Linux/Performance",
+            "extension": "sh",
+            "timeZone": "Etc/UTC"
+        }
+   ]
+}

@@ -1,0 +1,5 @@
+---
+# handlers file for collector-nginx
+
+- name: restart_collector
+  service: name=collector state=restarted enabled=yes

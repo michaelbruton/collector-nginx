@@ -1,0 +1,42 @@
+---
+# tasks file for collector-nginx
+
+- name: Create 'collector' directory.
+  file: path={{ sumologic_collector_dir }} state=directory owner=root group=root mode=0644
+
+- name: Transfer Sumo Logic Collector.
+  get_url: url=https://collectors.sumologic.com/rest/download/rpm/64 dest=/tmp/SumoCollector.rpm mode=0644 force=no
+  when: ansible_os_family == "RedHat" and ansible_lsb.major_release|int >= 7
+
+- name: Install Sumo Logic Collector.
+  yum: name=/tmp/SumoCollector.rpm state=installed
+  when: ansible_os_family == "RedHat" and ansible_lsb.major_release|int >= 7
+
+- name: YUM install package(s).
+  yum: name={{ item }} state=present
+  with_items:
+    - sysstat
+  when: ansible_os_family == "RedHat" and ansible_lsb.major_release|int >= 7
+
+- name: Gather facts.
+  action: ec2_facts
+
+- name: Interrogate the tags of instance.
+  ec2_tag:
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    region: "{{ aws_region }}"
+    resource: "{{ ansible_ec2_instance_id }}"
+    state: list
+  register: ec2_tags
+
+- name: Copy 'sumo.conf' file.
+  template: src=etc_sumo.conf.j2 dest=/etc/sumo.conf owner=root group=root mode=0644
+  notify: restart_collector
+
+- name: Copy 'sources.json' file.
+  template: src=sources.json.j2 dest={{ sumologic_collector_dir }}/sources.json owner=root group=root mode=0644
+  notify: restart_collector
+
+- name: Modify '/etc/cron.d/sysstat' file.
+  lineinfile: dest=/etc/cron.d/sysstat state=present regexp="^\*\/10 \* \* \* \* root \/usr\/lib64\/sa\/sa1 1 1" line="*/2 * * * * root /usr/lib64/sa/sa1 1 1" backup=yes backrefs=yes
