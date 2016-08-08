@@ -1,6 +1,6 @@
 galaxy_info:
   author: Michael Bruton
-  description: Install Sumo Logic Collector, and monitor host performance and NGINX access and error logs.
+  description: Install Sumo Logic Collector, and monitors host performance and NGINX access and error logs.
   company: Michael Bruton
 
   # If the issue tracker for your role is not on github, uncomment the
